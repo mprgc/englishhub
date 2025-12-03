@@ -1,49 +1,496 @@
-// register.js
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ඉංග්‍රීසි ඉගෙනුම් කළමනාකරණ පද්ධතිය (6-11 ශ්‍රේණි)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom font setup */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9f8fd; /* Very Light Purple/Off-White */
+            /* Prevent horizontal scroll during mobile transition */
+            overflow-x: hidden;
+        }
+        /* Custom scrollbar for better aesthetics */
+        .content-area::-webkit-scrollbar {
+            width: 8px;
+        }
+        .content-area::-webkit-scrollbar-thumb {
+            background-color: #6d28d9; /* Deep Purple */
+            border-radius: 4px;
+        }
+        .content-area::-webkit-scrollbar-track {
+            background: #f9f8fd; /* Light track */
+        }
+        /* Sidebar is fixed and off-screen to the RIGHT for ALL sizes by default */
+        #sidebar {
+            z-index: 40; 
+            /* Sidebar width is 16rem (w-64) */
+            width: 16rem; 
+        }
+        /* The main content shift is handled by JS adding the md:translate-x-[-16rem] class */
+        #main-content {
+            padding-top: 4rem; /* Ensure content is below the fixed header (h-16 = 4rem) */
+        }
+        /* The overlay opacity is set to 50 on smaller screens */
+        @media (max-width: 767px) {
+            .opacity-50 {
+                opacity: 0.5 !important;
+            }
+        }
+        /* Ensures smooth sliding for the carousel track */
+        #slider-track {
+            transition: transform 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-800">
 
-document.addEventListener("DOMContentLoaded", function() {
+    <!-- Main Container -->
+    <div class="flex flex-col min-h-screen">
 
-
-  const CURRENT_VERSION = "Version 1.0"; // <-- නව version එකක් දාන්න
-  const ACCESS_CODE = "EH321"; // <-- ඔබගේ නව code එක
-  
-  const registeredOnce = localStorage.getItem("MEH_registered_once");
-  const savedVersion = localStorage.getItem("MEH_version");
-
-  // version mismatch නම් access recheck කරන්න
-  if (savedVersion !== CURRENT_VERSION) {
-    localStorage.removeItem("MEH_registered");
-  }
-
-  // ✅ Access Code එක හෝ Version එක වෙනස් උනොත් popup එක පමණක් පෙන්වන්න
-  if (!localStorage.getItem("MEH_registered")) {
-
-    Swal.fire({
-      title: "🔑 Access Code Required",
-      html: "LMS එකෙහි security update එකක් සිදුවිය. කරුණාකර නව Access Code එක ඇතුළත් කරන්න.",
-      input: "text",
-      inputPlaceholder: "Enter your new code (e.g. EH123)",
-      confirmButtonText: "Verify",
-      icon: "warning",
-      allowOutsideClick: false
-    }).then((result) => {
-      if (result.value === ACCESS_CODE) {
-        localStorage.setItem("MEH_registered", "true");
-        localStorage.setItem("MEH_registered_once", "true");
-        localStorage.setItem("MEH_version", CURRENT_VERSION);
-        Swal.fire("✅ Verified!", "ඔබට දැන් LMS එක භාවිතා කළ හැක.", "success");
+        <!-- Header Bar and Menu Button (Visible on all screens) -->
+        <!-- The header is fixed and shifted using translate-x for smooth animation -->
+        <header id="page-header" class="flex items-center justify-between p-4 bg-purple-700 shadow-xl fixed w-full z-50 top-0 transition-all duration-300 ease-in-out">
+            <!-- Title and Slogan container -->
+            <div>
+                <h1 class="text-xl font-extrabold text-white">My English Hub 📚🍎🔠</h1>
+                <!-- Sinhala Slogan Added Here -->
+                <p class="text-xs text-purple-200 mt-0.5 opacity-80">Empowering your English journey...!</p>
+            </div>
+            <!-- Menu Toggle Button (Stays on the right) -->
+            <button id="menu-toggle" class="p-2 rounded-lg text-white hover:bg-purple-800 transition duration-200 shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </header>
         
-      } else {
-        Swal.fire("❌ වැරදි Access Code එකක්!", "Access Denied.", "error");
-        setTimeout(function() { location.reload(); }, 1500);
-      }
-    });
-  }
+        <!-- Content Overlay (Darkens background when menu is open) -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black opacity-0 z-30 pointer-events-none transition-opacity duration-300"></div>
 
-});
+        <!-- Sidebar Navigation (Light Theme) - NOW FULLY IN ENGLISH -->
+        <nav id="sidebar" class="fixed inset-y-0 right-0 transform translate-x-full transition-transform duration-300 ease-in-out bg-white text-gray-800 w-64 flex-shrink-0 p-4 shadow-2xl border-l border-purple-200 z-40">
+            <!-- Title is now always visible when sidebar is open -->
+            <h1 class="text-3xl font-extrabold mb-6 border-b-2 border-purple-300 pb-2 text-purple-700">
+                English LMS 
+            </h1>
+            <!-- Subtitle translated to English -->
+            <p class="text-sm mb-4 text-gray-600">Select Your Grade</p>
 
-function resetMEHData() {
-  localStorage.removeItem('MEH_registered');
-  localStorage.removeItem('MEH_registered_once');
-  localStorage.removeItem('MEH_version');
-  alert('✅ All My English Hub registration data has been cleared!');
-}
+            <div id="grade-buttons" class="space-y-3">
+                <!-- Grade Buttons - Text translated to English -->
+                <button data-grade="6" class="grade-btn w-full py-2 px-4 rounded-lg text-left transition duration-300 hover:bg-purple-200 bg-white text-purple-700 border border-purple-200">
+                    Grade 6
+                </button>
+                <button data-grade="7" class="grade-btn w-full py-2 px-4 rounded-lg text-left transition duration-300 hover:bg-purple-200 bg-white text-purple-700 border border-purple-200">
+                    Grade 7
+                </button>
+                <button data-grade="8" class="grade-btn w-full py-2 px-4 rounded-lg text-left transition duration-300 hover:bg-purple-200 bg-white text-purple-700 border border-purple-200">
+                    Grade 8
+                </button>
+                <button data-grade="9" class="grade-btn w-full py-2 px-4 rounded-lg text-left transition duration-300 hover:bg-purple-200 bg-white text-purple-700 border border-purple-200">
+                    Grade 9
+                </button>
+                <button data-grade="10" class="grade-btn w-full py-2 px-4 rounded-lg text-left transition duration-300 hover:bg-purple-200 bg-white text-purple-700 border border-purple-200">
+                    Grade 10
+                </button>
+                <button data-grade="11" class="grade-btn w-full py-2 px-4 rounded-lg text-left transition duration-300 hover:bg-purple-200 bg-white text-purple-700 border border-purple-200">
+                    Grade 11 (O/L)
+                </button>
+            </div>
+        </nav>
+
+        <br>
+
+        <!-- Content Area -->
+        <main id="main-content" class="flex-grow p-4 md:p-8 content-area overflow-y-auto transition-all duration-300 ease-in-out">
+            
+            <!-- INITIAL VIEW: SLIDER/WELCOME (Visible on Load) -->
+            <div id="initial-view" class="w-full">
+                <!-- Updated Title and Subtitle -->
+                <h5 class="text-4x1 font-bold text-purple-800 mb-2">English Learning Management System</h5>
+                <!--p class="text-2xl font-semibold text-purple-600 mb-6">English Learning Management System</p-->
+                
+                <div id="slider-carousel" class="relative w-full overflow-hidden rounded-xl shadow-2xl border-4 border-purple-300">
+                    <!-- Slider Track: Holds all images and translates horizontally -->
+                    <div id="slider-track" class="flex">
+                        <!-- Images will be inserted here by JS -->
+                    </div>
+                </div>
+
+                <!-- Slider Navigation Dots -->
+                <div class="flex justify-center mt-6 space-x-2" id="slider-dots">
+                    <!-- Dots will be inserted here by JS -->
+                </div>
+
+                <!-- Introductory Text MOVED BELOW the slider and centered -->
+                <p class="text-lg text-gray-600 mt-8 mb-8 text-center">ඔබේ ඉංග්‍රීසි ගමන ආරම්භ කරන්න. ඉහළ දකුණු කෙළවරේ ඇති මෙනු බොත්තම ඔබා ඔබේ ශ්‍රේණිය තෝරන්න.</p>
+            </div>
+
+            <!-- GRADE VIEW (Hidden on Load) -->
+            <div id="grade-view" class="hidden">
+                <header class="mb-8 border-b border-purple-300 pb-4">
+                    <h2 id="current-grade-title" class="text-4xl font-bold text-purple-800">
+                        ශ්‍රේණිය සඳහා සම්පත්
+                    </h2>
+                    <p class="text-gray-600 mt-1">ඉංග්‍රීසි විෂය අධ්‍යයනය සඳහා අවශ්‍ය සියලුම සම්පත් පහතින් බලන්න.</p>
+                </header>
+    
+                <div id="content-display" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Resource Card Template (Will be dynamically populated) -->
+                </div>
+            </div>
+
+        </main>
+        
+        <!-- FOOTER SECTION - Simplified as requested -->
+        <footer class="bg-gray-800 text-white p-6 shadow-2xl mt-auto border-t-4 border-gray-500">
+            <div class="max-w-7xl mx-auto text-center space-y-1">
+                <!-- Main Title -->
+                <p class="text-xl font-bold text-gray-200">My English Hub</p>
+                
+                <!-- Slogan -->
+                <p class="text-sm text-gray-300">"Empowering your English journey."</p>
+                
+                <!-- Copyright -->
+                <p class="text-xs text-gray-400">&copy; 2026 English LMS Platform. All rights reserved GK.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Define the structure of the learning materials with placeholder links
+        const learningMaterials = {
+            // Use mock Google Drive links for demonstration
+            '6': [
+                { category: 'Textbooks', title: 'Grade 6 Textbook', icon: '📖', link: 'https://drive.google.com/drive/folders/1WY7E8y2XutBk2X9aerDvH4UiIEST-tBZ?usp=sharing' },
+                { category: 'Past Papers', title: 'Grade 6 Past Papers', icon: '📜', link: 'https://drive.google.com/drive/folders/1Vc_0VDCveCvIZW2wQ8VHYVd_YX8XC7mK?usp=sharing' },
+                { category: 'Unit Paper', title: 'Grade 6 Unit Paper', icon: '📝', link: 'https://drive.google.com/drive/folders/1BnKFjAUxIfS-X4F0YJEJi1yPKhTp38i7?usp=sharing' },
+                { category: 'Video Lessons', title: 'Video Lessons', icon: '🎞️', link: 'https://drive.google.com/drive/folders/1Ttp_RX4wLeTkSpm3oGOUXzjh3kJtmD7N?usp=sharing' },
+
+            ],
+            '7': [
+                { category: 'Textbooks', title: 'Grade 7 Textbook', icon: '📖', link: 'https://drive.google.com/drive/folders/1uoLmoRKHx_jIr6QJlZP9P6ZmuXtuC3zp?usp=sharing' },
+                { category: 'Past Papers', title: 'Grade 7 Past Papers', icon: '📜', link: 'https://drive.google.com/drive/folders/1zjGINQacGhj94c-h8uh6RtQHQ2ULAYcC?usp=sharing' },
+                { category: 'Unit Paper', title: 'Grade 7 Unit Paper', icon: '📝', link: 'https://drive.google.com/drive/folders/153nNdVE5MvHNTecc-QCkROhZC78msxUk?usp=sharing' },
+                 { category: 'Study Pack', title: 'Grade 7 Study Pack', icon: '📚', link: 'https://drive.google.com/drive/folders/1N_IeFrHOKUoBc-sxSPYjWynj3jDl9nkW?usp=sharing' },
+                { category: 'Video Lessons', title: 'Video Lessons', icon: '🎞️', link: 'https://drive.google.com/drive/folders/1BwunSGzqjhCkJYS-goHQG-hVib3HiOtI?usp=sharing' }, 
+            ],
+            '8': [
+                { category: 'Textbooks', title: 'Grade 8 Textbook', icon: '📖', link: 'https://drive.google.com/drive/folders/1aAinWCW1QFWGnsrdTFf4BhMCAwYAbbw_?usp=sharing' },
+                { category: 'Past Papers', title: 'Grade 8 Past Papers', icon: '📜', link: 'https://drive.google.com/drive/folders/1zNaeDiZ6yRmhclsqyWgrwjpgTqBwG62e?usp=sharing' },
+                { category: 'Unit Paper', title: 'Grade 8 Unit Paper', icon: '📝', link: 'https://drive.google.com/drive/folders/1AhymeIY_4UtNTHgS4lWF6RhOKbvVRvNt?usp=sharing' },
+                { category: 'Study Pack', title: 'Grade 8 Study Pack', icon: '📚', link: 'https://drive.google.com/drive/folders/1r7Riu4WgWZrkJJQpopZVSMLn7LeKutKx?usp=sharing' },
+                { category: 'Video Lessons', title: 'Video Lessons', icon: '🎞️', link: 'https://drive.google.com/drive/folders/1kDoQqMCDl7F4kv2OuOCZnDcCRlgfK_Ds?usp=sharing' }, 
+            ],
+            '9': [
+                { category: 'Textbooks', title: 'Grade 9 Textbook', icon: '📖', link: 'https://drive.google.com/drive/folders/15slRsiab943J5TfnGSjYxk2ewQI0bfLC?usp=sharing' },
+                { category: 'Unit Paper', title: 'Grade 9 Past Papers', icon: '📜', link: 'https://drive.google.com/drive/folders/1YqAlLhST73opovKv985zOJYDfSHXosvQ?usp=sharing' },
+                { category: 'Unit Paper', title: 'Grade 9 Unit Paper', icon: '📝', link: 'https://drive.google.com/drive/folders/1WITvPqdToSRv3NFtenpu81gXJfquT6hM?usp=sharing' },
+                { category: 'Study Pack', title: 'Grade 9 Study Pack', icon: '📚', link: 'https://drive.google.com/drive/folders/1RPYaB_Rry8wjwnzIg9qVAZxQoMmanXoL?usp=sharing' },
+                { category: 'Video Lessons', title: 'Video Lessons', icon: '🎞️', link: 'https://drive.google.com/drive/folders/1pH8qeWI-fyF6ot_olVAqSaPC37bKeD-B?usp=sharing' }, 
+            ],
+            '10': [
+                { category: 'Textbooks', title: 'Grade 10 Textbook', icon: '📖', link: 'https://drive.google.com/drive/folders/1htkoYu21qEqRTRqFCItT5x28nzSr2EIC?usp=sharing' },
+                { category: 'Past Papers', title: 'Grade 10 Past Papers', icon: '📜', link: 'https://drive.google.com/drive/folders/1VrQb4HCpGyP-Ee5ntqqVe2xpFPxTmAO1?usp=sharing' },
+                { category: 'Unit Paper', title: 'Grade 10 Unit Paper', icon: '📝', link: 'https://drive.google.com/drive/folders/1zFjfTfwppHK8KyCCVV2ImlWpQKMcoYjO?usp=sharing' },
+                { category: 'Study Pack', title: 'Grade 10 Study Pack', icon: '📚', link: 'https://drive.google.com/drive/folders/1GFnsYSMwc2uitCF_NXpfzTbkV4sZiTFX?usp=sharing' },
+                { category: 'Video Lessons', title: 'Video Lessons', icon: '🎞️', link: 'https://drive.google.com/drive/folders/1dOe4EG6mRiT9ldVdTfm46pSpcNFLtRpl?usp=sharing' }, 
+            ],
+            '11': [
+                { category: 'Textbooks', title: 'Grade 11 Textbook', icon: '📖', link: 'https://drive.google.com/drive/folders/1-dfl7Z9DmIYWshrQcLg8bTY06lSagFKu?usp=sharing' },
+                { category: 'O/L Papers', title: 'GCE O/L Past papers', icon: '🧾', link: 'https://drive.google.com/drive/folders/1KXabwE1Shn1mgZ30h_mS2L6CrDrhF2c0?usp=sharing' }, 
+                { category: 'Past Papers', title: 'Grade 11 Past Papers', icon: '📜', link: 'https://drive.google.com/drive/folders/17jOs9JzHrCfmhYxVbG4G1MKiyWrVpmw4?usp=sharing' },
+                { category: 'Unit Paper', title: 'Grade 11 Unit Paper', icon: '📝', link: 'https://drive.google.com/drive/folders/14kUr8rUBy3SYoXH-vXJQAGDv7s5XVzPP?usp=sharing' },
+                { category: 'Study Pack', title: 'Grade 11 Study Pack', icon: '📚', link: 'https://drive.google.com/drive/folders/1F-xzHYf1CJULdWEVek_8ePyr6pATiqH5?usp=sharing' },
+                { category: 'Video Lessons', title: 'Video Lessons', icon: '🎞️', link: 'https://drive.google.com/drive/folders/1mgnlAEUUdLUxHIweF_qJ8WsZ8SannCh-?usp=sharing' }, 
+            ]
+        };
+
+        const contentDisplay = document.getElementById('content-display');
+        const currentGradeTitle = document.getElementById('current-grade-title');
+        const gradeButtons = document.querySelectorAll('.grade-btn');
+        const sidebar = document.getElementById('sidebar');
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const mainContent = document.getElementById('main-content');
+        const pageHeader = document.getElementById('page-header'); // Get the fixed header element
+        
+        // New elements for the slider/view control
+        const initialView = document.getElementById('initial-view');
+        const gradeView = document.getElementById('grade-view');
+        const sliderTrack = document.getElementById('slider-track');
+        const sliderDots = document.getElementById('slider-dots');
+
+        // Slider configuration
+        const sliderImages = [
+            { src: 'img/Slider1.jpg'/*, alt: 'Welcome to English Hub', text: 'ඉගෙනුම් ගමන අරඹන්න!'*/ },
+            // Text property removed from Index 1 in previous update
+            { src: 'img/Slider3.jpg', alt: 'Past Papers' },
+            // Text property removed from Index 2 as requested
+            { src: 'img/Slider2.jpg', alt: 'Grammar and Vocabulary' },
+        ];
+        
+        let currentSlide = 0;
+        let sliderInterval;
+
+
+        // Class to apply CSS translation for smooth shifting (16rem = w-64 sidebar width)
+        const SIDEBAR_SHIFT_CLASS = 'md:translate-x-[-16rem]';
+
+
+        /**
+         * ශ්‍රේණි තේරීමේ මෙනුව වසා දැමීම. (Slide Out to Right)
+         * Closes the sidebar menu.
+         */
+        function closeMenu() {
+            // Sidebar and Overlay logic
+            sidebar.classList.add('translate-x-full'); 
+            sidebar.classList.remove('translate-x-0');
+            sidebarOverlay.classList.add('opacity-0', 'pointer-events-none');
+            sidebarOverlay.classList.remove('opacity-50');
+
+            // --- DESKTOP FIX: Restore position by removing translation ---
+            mainContent.classList.remove(SIDEBAR_SHIFT_CLASS);
+            pageHeader.classList.remove(SIDEBAR_SHIFT_CLASS);
+            // -----------------------------------------------------------
+        }
+
+        /**
+         * ශ්‍රේණි තේරීමේ මෙනුව විවෘත කිරීම හෝ වැසීම. (Slide In from Right)
+         * Toggles the sidebar menu.
+         */
+        function toggleMenu() {
+            const isMenuOpen = sidebar.classList.contains('translate-x-0');
+            if (isMenuOpen) {
+                closeMenu();
+            } else {
+                // Sidebar and Overlay logic
+                sidebar.classList.remove('translate-x-full');
+                sidebar.classList.add('translate-x-0');
+                sidebarOverlay.classList.remove('opacity-0', 'pointer-events-none');
+                sidebarOverlay.classList.add('opacity-50');
+
+                // --- DESKTOP FIX: Shift header and main content left by 16rem (sidebar width) using transform ---
+                mainContent.classList.add(SIDEBAR_SHIFT_CLASS);
+                pageHeader.classList.add(SIDEBAR_SHIFT_CLASS);
+                // -----------------------------------------------------------------
+            }
+        }
+
+        // --- New Slider Functions ---
+
+        /**
+         * Moves the slider track to the specified slide index.
+         * @param {number} index - The index of the slide to go to.
+         */
+        function goToSlide(index) {
+            currentSlide = (index + sliderImages.length) % sliderImages.length;
+            const offset = -currentSlide * 100;
+            if (sliderTrack) {
+                sliderTrack.style.transform = `translateX(${offset}%)`;
+            }
+            updateDots(currentSlide);
+        }
+
+        /**
+         * Starts the automatic sliding interval.
+         */
+        function startAutoSlide() {
+            if (sliderInterval) clearInterval(sliderInterval);
+            sliderInterval = setInterval(() => {
+                goToSlide(currentSlide + 1);
+            }, 5000); // Change slide every 5 seconds
+        }
+        
+        /**
+         * Resets the automatic sliding interval after a manual interaction.
+         */
+        function resetAutoSlide() {
+            clearInterval(sliderInterval);
+            startAutoSlide();
+        }
+
+        /**
+         * Updates the visual appearance of the slider dots.
+         * @param {number} activeIndex - The index of the active slide.
+         */
+        function updateDots(activeIndex) {
+            document.querySelectorAll('.slider-dot').forEach((dot, index) => {
+                if (index === activeIndex) {
+                    dot.classList.remove('bg-gray-300');
+                    dot.classList.add('bg-purple-600');
+                } else {
+                    dot.classList.remove('bg-purple-600');
+                    dot.classList.add('bg-gray-300');
+                }
+            });
+        }
+
+
+        /**
+         * Renders the initial view (slider) and sets up the track structure.
+         */
+        function renderSlider() {
+            if (!sliderTrack || !sliderDots) return; // Guard clause
+
+            let trackHTML = '';
+            let dotsHTML = '';
+
+            sliderImages.forEach((img, index) => {
+                // Determine the text overlay HTML if img.text exists
+                const overlayHTML = img.text ? `
+                    <!-- Text Overlay -->
+                    <div class="absolute inset-0 bg-black bg-opacity-40 flex items-end p-8">
+                        <h3 class="text-2xl sm:text-4xl font-extrabold text-white">${img.text}</h3>
+                    </div>
+                ` : '';
+
+                // Slide Item - flex-shrink-0 w-full is crucial for horizontal sliding
+                trackHTML += `
+                    <div class="flex-shrink-0 w-full relative h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden">
+                        <!-- Placeholder image with error fallback -->
+                        <img src="${img.src}" alt="${img.alt || 'Slider Image'}" class="w-full h-full object-cover" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/1200x500/6D28D9/FFFFFF?text=Image+Load+Error';" />
+                        ${overlayHTML}
+                    </div>
+                `;
+                 // Slide Dots
+                dotsHTML += `
+                    <button data-index="${index}" class="slider-dot w-3 h-3 rounded-full bg-gray-300 hover:bg-purple-500 transition duration-300"></button>
+                `;
+            });
+
+            sliderTrack.innerHTML = trackHTML;
+            sliderDots.innerHTML = dotsHTML;
+            
+            // Add event listeners to dots
+            document.querySelectorAll('.slider-dot').forEach(dot => {
+                dot.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.getAttribute('data-index'));
+                    goToSlide(index);
+                    resetAutoSlide();
+                });
+            });
+
+            // Set initial active dot
+            updateDots(0);
+
+            // Show initial view, hide grade view
+            initialView.classList.remove('hidden');
+            gradeView.classList.add('hidden');
+
+            // Start the automatic sliding
+            startAutoSlide();
+        }
+
+
+        /**
+         * ශ්‍රේණියක් තේරූ විට අදාළ සම්පත් පෙන්වීමට මෙම ශ්‍රිතය භාවිතා වේ.
+         * Displays the resources for the selected grade.
+         * @param {string} grade - The selected grade number ('6' through '11').
+         */
+        function renderContent(grade) {
+            // Hide slider, show grade view
+            initialView.classList.add('hidden');
+            gradeView.classList.remove('hidden');
+
+            // Stop auto sliding when grade content is active
+            if (sliderInterval) clearInterval(sliderInterval);
+
+            const materials = learningMaterials[grade];
+            let html = '';
+
+            // Update the main title (Remaining in Sinhala as requested by default)
+            currentGradeTitle.textContent = `${grade} ශ්‍රේණිය සඳහා සම්පත්`;
+
+            materials.forEach(item => {
+                // Card for each resource - Updated Light Mode Classes
+                html += `
+                    <div class="bg-white p-6 rounded-xl shadow-xl hover:shadow-2xl transition duration-300 transform hover:scale-[1.02] border border-gray-200">
+                        <div class="flex items-start justify-between mb-4">
+                            <span class="text-4xl mr-4">${item.icon}</span>
+                            <!-- Category badge updated for light mode -->
+                            <span class="text-xs font-semibold uppercase tracking-wider text-purple-600 bg-purple-100 px-3 py-1 rounded-full shadow-inner">${item.category}</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-4">${item.title}</h3>
+                        
+                        <!-- Google Drive Link Button - Kept contrast for readability -->
+                        <a href="${item.link}"  class="inline-flex items-center justify-center w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-md">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v3.586L7.707 9.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 10.586V7z" clip-rule="evenodd" />
+                            </svg>
+                            Google Drive වෙත යන්න
+                        </a>
+                        <p class="text-xs text-gray-400 mt-2 text-center">මෙම බොත්තම click කර පිවිසෙන්න.</p>
+                    </div>
+                `;
+            });
+
+            contentDisplay.innerHTML = html;
+            updateActiveButton(grade);
+
+            // Close the menu after selecting a grade
+            closeMenu();
+        }
+
+        /**
+         * තෝරාගත් බොත්තම සඳහා සක්‍රීය (active) පෙනුම වෙනස් කරයි.
+         * Updates the active state of the grade buttons (Light Mode Logic).
+         * @param {string} activeGrade - The currently active grade.
+         */
+        function updateActiveButton(activeGrade) {
+            gradeButtons.forEach(btn => {
+                // Remove Active styles
+                btn.classList.remove('bg-purple-200', 'text-purple-900', 'shadow-inner');
+                // Add Inactive styles (Default)
+                btn.classList.add('bg-white', 'text-purple-700', 'border', 'border-purple-200');
+
+                if (btn.getAttribute('data-grade') === activeGrade) {
+                    // Add Active styles
+                    btn.classList.add('bg-purple-200', 'text-purple-900', 'shadow-inner');
+                    // Remove Inactive styles if active
+                    btn.classList.remove('bg-white', 'text-purple-700', 'border', 'border-purple-200');
+                }
+            });
+        }
+
+        // Event Listeners for Grade Buttons
+        gradeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const grade = button.getAttribute('data-grade');
+                renderContent(grade);
+            });
+        });
+
+        // Event Listeners for Menu Toggle Button
+        if (menuToggle) {
+            menuToggle.addEventListener('click', toggleMenu);
+        }
+        
+        // Close menu if user clicks outside of it (on the overlay)
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeMenu);
+        }
+
+        // Load the Slider view by default on initial page load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderSlider(); // Start with the slider view
+            // Ensure menu is closed initially
+            closeMenu();
+        });
+
+
+
+    </script>
+    <script src="script_popup.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <button onclick="resetMEHData()">🧹 Reset GKICT Registration Data</button>
+
+</body>
+</html>

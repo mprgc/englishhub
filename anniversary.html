@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>සංවත්සර සුබ පැතුම් පිටුව | Anniversary Greeting Page</title>
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom CSS for the fade-out animation */
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        /* Class to apply the fade-out animation */
+        .animate-out {
+            animation: fadeOut 1s ease-out forwards;
+        }
+
+        /* Set 'Inter' as the default font */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light grey background */
+        }
+
+        /* Optional: Add a subtle heart-beat effect to the main image after the animation */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        .pulse-effect {
+            animation: pulse 3s infinite ease-in-out;
+        }
+
+        /* Confetti Styles - For the falling paper pieces */
+        .confetti-piece {
+            position: absolute;
+            width: 8px;
+            height: 12px;
+            background-color: #f00; /* Color will be set via JS */
+            opacity: 0;
+            top: 0;
+            animation: fall 4s linear infinite;
+            pointer-events: none;
+            border-radius: 2px;
+            transition: opacity 2s ease-out; /* For smooth fade out */
+        }
+
+        @keyframes fall {
+            /* Start high above the viewport with full opacity (changed from 0.8 to 1) */
+            0% { 
+                transform: translate3d(0, -100vh, 0) rotate(0deg); 
+                opacity: 1; 
+            }
+            /* End far below the viewport (changed from 0.2 to 0.6) */
+            100% { 
+                transform: translate3d(0, 100vh, 0) rotate(720deg); 
+                opacity: 0.6; 
+            }
+        }
+
+        /* Custom Loader style */
+        .loader {
+            border-top-color: #8b5cf6; /* purple-500 */
+            -webkit-animation: spin 1s linear infinite;
+            animation: spin 1s linear infinite;
+        }
+
+        @-webkit-keyframes spin {
+            0% { -webkit-transform: rotate(0deg); }
+            100% { -webkit-transform: rotate(360deg); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* New: Button Entry Animation Keyframes */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95); /* Start slightly low and small */
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1); /* End at normal size and position */
+            }
+        }
+
+        /* New: Class to apply the button animation */
+        .button-entrance {
+            animation: fadeInUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+        
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Confetti Container (New element) - Runs the falling animation -->
+    <div id="confetti-container" 
+         class="fixed inset-0 overflow-hidden pointer-events-none z-40 transition-opacity duration-2000">
+        <!-- Confetti pieces will be added here by JavaScript -->
+    </div>
+
+    <!-- The Main Content (Initially hidden by the overlay, but visible in the DOM) -->
+    <div id="main-content" class="text-center transition-opacity duration-1000 ease-in opacity-0 max-w-lg w-full">
+        <!-- Image in the center -->
+        <div class="mb-6">
+            <!-- Using a placeholder image with a nice, rounded style -->
+            <img src="img/anny.jpg" 
+                 alt="සංවත්සර රූපය" 
+                 class="mx-auto rounded-full shadow-xl border-4 border-purple-500 w-48 h-48 object-cover pulse-effect"
+                 onerror="this.onerror=null; this.src='https://placehold.co/300x300/e9d5ff/8b5cf6?text=Image+Missing';"
+            >
+        </div>
+
+        <!-- Text below the image -->
+        <h1 class="text-4xl sm:text-5xl font-extrabold text-purple-700 mb-2 tracking-tight">
+            Happy Anniversary!
+        </h1>
+        <p class="text-lg sm:text-xl text-gray-600 mb-8">
+            Happy second anniversary to the Girl who captured my heart. You still have it. I Love you lot...! 😍
+        </p>
+
+        <!-- Button, initially hidden -->
+        <button id="lms-button" 
+                class="hidden w-full sm:w-auto px-8 py-3 bg-green-500 text-white font-bold 
+                       rounded-lg shadow-lg hover:bg-green-600 transition-all duration-300 
+                       transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-300"
+                onclick="window.location.href='https://www.google.com';" 
+                aria-label="Start your LMS Platform"
+        >
+            Start your LMS
+        </button>
+        <p id="loading-message" class="text-sm mt-4 text-gray-500">
+            ...
+        </p>
+    </div>
+
+    <!-- Animation Overlay (Covers the entire screen) -->
+    <div id="animation-overlay" 
+         class="fixed inset-0 bg-white z-50 flex items-center justify-center flex-col 
+                text-2xl font-bold text-purple-600">
+        <div class="loader ease-linear rounded-full border-8 border-t-8 border-purple-200 h-16 w-16 mb-4"></div>
+        <p>Loading the celebration...</p>
+    </div>
+
+    <script>
+        // Global Variables
+        const overlay = document.getElementById('animation-overlay');
+        const mainContent = document.getElementById('main-content');
+        const lmsButton = document.getElementById('lms-button');
+        const loadingMessage = document.getElementById('loading-message');
+        const confettiContainer = document.getElementById('confetti-container');
+        
+        // Define colors for confetti (Tailwind shades)
+        const colors = ['#f87171', '#fb923c', '#fcd34d', '#4ade80', '#60a5fa', '#a78bfa', '#f472b6']; 
+
+        // Function to create and drop confetti pieces
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) { // Generate 50 pieces of confetti
+                const piece = document.createElement('div');
+                piece.classList.add('confetti-piece');
+                
+                // Randomly set properties for varied effect
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const duration = Math.random() * 3 + 2; // 2s to 5s duration
+                const delay = Math.random() * 4; // 0s to 4s delay
+
+                piece.style.backgroundColor = color;
+                piece.style.width = `${Math.random() * 8 + 5}px`; // Random width
+                piece.style.height = `${Math.random() * 12 + 5}px`; // Random height
+                piece.style.left = `${Math.random() * 100}vw`; // Random horizontal position
+                piece.style.animationDuration = `${duration}s`;
+                piece.style.animationDelay = `-${delay}s`; // Negative delay starts animation mid-cycle for instant falling effect
+                
+                confettiContainer.appendChild(piece);
+            }
+        }
+
+        // --- Core Application Logic ---
+
+        // Function to handle the animation and content reveal
+        function startAnimationSequence() {
+            // 0. Start the confetti immediately upon load
+            createConfetti(); 
+            
+            // 1. Set the duration for the visible part of the loading animation
+            const visibleAnimationDuration = 2500; 
+            
+            // 2. Wait for the visible duration
+            setTimeout(() => {
+                // Start the CSS fade-out effect on the overlay
+                overlay.classList.add('animate-out');
+                
+                // Make the main content visible with a fade-in effect
+                mainContent.classList.remove('opacity-0');
+
+                // 3. Wait for the CSS fade-out animation to complete (1 second)
+                setTimeout(() => {
+                    // Completely remove the overlay from view
+                    overlay.style.display = 'none';
+
+                    // --- NEW DELAY ADDED: Wait an additional 3 seconds before showing the button ---
+                    const buttonDelay = 3000; 
+                    
+                    setTimeout(() => {
+                        // Show the button and trigger the entrance animation
+                        lmsButton.classList.remove('hidden');
+                        lmsButton.classList.add('button-entrance'); // Apply the new entrance animation
+                        
+                        // Hide the loading message
+                        loadingMessage.classList.add('hidden');
+                        
+                        // IMPORTANT: Update the button's destination URL (වෙනත් වෙබ් පිටුවකට)
+                        // You must change the 'https://www.google.com' below to your actual LMS URL.
+                        lmsButton.onclick = () => {
+                            window.location.href = 'index.html'; // **Change this URL**
+                        };
+
+                        // Start fading out the confetti immediately after the button is shown
+                        confettiContainer.style.opacity = '0';
+
+                    }, buttonDelay); // 3000ms (3 seconds)
+
+                }, 1000); // This delay matches the 'fadeOut' CSS animation duration (1s)
+
+            }, visibleAnimationDuration); 
+        }
+
+        // Wait for the window to fully load before starting the sequence
+        window.onload = startAnimationSequence;
+        
+    </script>
+</body>
+</html>

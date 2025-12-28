@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
         snow.className = "snow";
 
         const flake = new Image();
-        flake.src = "../../img/snow.png";
+        flake.src = "img/snow.png";
         flake.className = "flake";
 
         const size = 5 + Math.random() * 20;
@@ -100,5 +100,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 }
+
 
 

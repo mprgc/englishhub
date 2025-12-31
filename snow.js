@@ -1,6 +1,6 @@
 // prevent running twice
 if (!window.__snowEffectLoaded) {
-window.__snowEffectLoaded = true;
+window.__snowEffectLoaded = false;
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -100,6 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 }
+
 
 
 
